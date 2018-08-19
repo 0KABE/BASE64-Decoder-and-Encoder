@@ -16,11 +16,11 @@ int get_choice(void);
 void get_filename(char *filename);
 int exist_choice(char ch);
 
-const char table[64] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-                        'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-                        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-                        'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-                        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'};
+const char table_encode[64] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+                               'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+                               'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+                               'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+                               '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'};
 
 int main(void)
 {
@@ -172,10 +172,10 @@ int encode_isend(FILE *source, char *ch, FILE *target)
     }
     int32_t *s = (int32_t *)temp;
 
-    ch[0] = table[(*s & 0xfc0000) >> 18];
-    ch[1] = table[(*s & 0x3f000) >> 12];
-    ch[2] = table[(*s & 0xfc0) >> 6];
-    ch[3] = table[*s & 0x3f];
+    ch[0] = table_encode[(*s & 0xfc0000) >> 18];
+    ch[1] = table_encode[(*s & 0x3f000) >> 12];
+    ch[2] = table_encode[(*s & 0xfc0) >> 6];
+    ch[3] = table_encode[*s & 0x3f];
 
     return isend;
 }
