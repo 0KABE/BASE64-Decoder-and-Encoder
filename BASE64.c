@@ -1,14 +1,17 @@
+#include <ctype.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define n_choices 3
-#define choice_chars "abq"
+#define N_CHOICES 3
+#define CHOICE_CHARS "abq"
+#define DEFAULT_MAXCHARS_ONELINE 76
 
 void decode(FILE *source, FILE *target);
-void encode(FILE *source, FILE *target);
+void encode(FILE *source, FILE *target, int maxchars_oneline);
 int encode_isend(FILE *source, char *ch, FILE *target);
+int maxchars(void);
 int get_choice(void);
 void get_filename(char *filename);
 int exist_choice(char ch);
@@ -50,7 +53,7 @@ int main(void)
             strcpy(targetname, "encoded_");
             strcat(targetname, sourcename);
             target = fopen(targetname, "w");
-            encode(source, target);
+            encode(source, target, maxchars());
             break;
         case 'b':
             strcpy(targetname, "decoded_");
@@ -86,8 +89,8 @@ int get_choice(void)
 
 int exist_choice(char ch)
 {
-    char j[n_choices] = choice_chars;
-    for (int i = 0; i < n_choices; i++)
+    char j[N_CHOICES] = CHOICE_CHARS;
+    for (int i = 0; i < N_CHOICES; i++)
     {
         if (ch == j[i])
             return 1;
@@ -113,7 +116,7 @@ void decode(FILE *source, FILE *target)
 {
 }
 
-void encode(FILE *source, FILE *target)
+void encode(FILE *source, FILE *target, int maxchars_oneline)
 {
     char j[4];
     int n = 1;
@@ -123,7 +126,7 @@ void encode(FILE *source, FILE *target)
         for (int i = 0; i < 4; i++)
         {
             fputc(j[i], target);
-            if (n++ % 64 == 0)
+            if (n++ % maxchars_oneline == 0)
             {
                 fputc('\n', target);
                 n = 1;
@@ -175,4 +178,27 @@ int encode_isend(FILE *source, char *ch, FILE *target)
     ch[3] = table[*s & 0x3f];
 
     return isend;
+}
+
+int maxchars(void)
+{
+    int n;
+    puts("Enter the number of max characters one line(0 to default):");
+    for (scanf("%d", &n); !isdigit(n) && (n < 0 || n > DEFAULT_MAXCHARS_ONELINE); scanf("%d", &n))
+    {
+        printf("Error! Enter a number(0~%d) again:", DEFAULT_MAXCHARS_ONELINE);
+        while (getchar() != '\n')
+        {
+            continue;
+        }
+    }
+    while (getchar() != '\n')
+    {
+        continue;
+    }
+
+    if (n == 0)
+        n = DEFAULT_MAXCHARS_ONELINE;
+
+    return n;
 }
