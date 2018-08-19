@@ -9,6 +9,7 @@
 #define DEFAULT_MAXCHARS_ONELINE 76
 
 void decode(FILE *source, FILE *target);
+int convert_origin(FILE *source, char *origin);
 void encode(FILE *source, FILE *target, int maxchars_oneline);
 int encode_isend(FILE *source, char *ch, FILE *target);
 int maxchars(void);
@@ -16,11 +17,11 @@ int get_choice(void);
 void get_filename(char *filename);
 int exist_choice(char ch);
 
-const char table_encode[64] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+const char table_encode[65] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
                                'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
                                'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
                                'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-                               '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'};
+                               '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/', '\0'};
 
 int main(void)
 {
@@ -59,7 +60,7 @@ int main(void)
             strcpy(targetname, "decoded_");
             strcat(targetname, sourcename);
             target = fopen(targetname, "w");
-            // decode(source, target);
+            decode(source, target);
             break;
         }
 
@@ -114,6 +115,46 @@ void get_filename(char *filename)
 
 void decode(FILE *source, FILE *target)
 {
+    char origin[3];
+    int n;
+    while (!(n = convert_origin(source, origin)))
+    {
+        fwrite(origin, sizeof(char), 3, target);
+    }
+    if (n == 1)
+    {
+        fputc(origin[0], target);
+        fputc(origin[1], target);
+    }
+    else if (n == 2)
+    {
+        fputc(origin[0], target);
+    }
+}
+
+int convert_origin(FILE *source, char *origin)
+{
+    char ch[4];
+    int32_t code = 0;
+    int n = 0;
+    for (int i = 3; i >= 0; i--)
+    {
+        while ((ch[i] = fgetc(source)) == '\n')
+            continue;
+        if (ch[i] == EOF)
+            return -1;
+        if (ch[i] == '=')
+        {
+            ch[i] = '\0';
+            n++;
+        }
+        code = (strchr(table_encode, ch[i]) - table_encode) | code << 6;
+    }
+    origin[0] = (code & 0xff0000) >> 16;
+    origin[1] = (code & 0xff00) >> 8;
+    origin[2] = (code & 0xff);
+
+    return n;
 }
 
 void encode(FILE *source, FILE *target, int maxchars_oneline)
